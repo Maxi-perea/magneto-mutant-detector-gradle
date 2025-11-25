@@ -17,14 +17,14 @@ Magneto quiere reclutar la mayor cantidad de mutantes para su ejército. Este si
 Un humano es mutante si se encuentran **más de una secuencia de cuatro letras iguales** (A, T, C, G) en dirección oblicua, horizontal o vertical.
 
 ### 🚀 Tecnologías Utilizadas
-* **Lenguaje:** Java 21
+* **Lenguaje:** Java 17
 * **Framework:** Spring Boot 3.2.3
 * **Base de Datos:** H2 Database (En memoria, optimizada con índices).
 * **Testing:** JUnit 5 + Mockito.
 * **Despliegue:** Docker + Render.
-* **Build Tool:** Maven.
+* **Build Tool:** Gradle.
 * **IA:** Gemini 3 Pro.
-
+* **Documentación Swagger:** [Ver Documentación Interactiva](https://magneto-mutant-detector-gradle.onrender.com/swagger-ui/index.html)
 
 ---
 
@@ -73,6 +73,17 @@ cd mutant-detector
 # Ejecutar con Maven Wrapper (Linux/Mac)
 ./mvnw spring-boot:run
 ```
+## 📖 Documentación API (Swagger UI)
+
+El proyecto implementa **OpenAPI (Swagger)** para documentar y probar la API visualmente. No es necesario instalar herramientas externas como Postman.
+
+👉 **[Acceder a la Documentación Interactiva](https://magneto-mutant-detector-gradle.onrender.com/swagger-ui/index.html)**
+
+Desde esta interfaz podrás:
+1. Ver los esquemas de datos JSON (`DnaRequest`, `StatsResponse`).
+2. Probar los endpoints `POST /mutant/` y `GET /stats` con el botón "Try it out".
+3. Ver los códigos de respuesta HTTP posibles (200, 403, 400).
+
 
 ## 📊 Diagrama de Secuencia
 
