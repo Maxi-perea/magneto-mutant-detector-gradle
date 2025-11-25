@@ -1,7 +1,7 @@
 # Build stage
 FROM gradle:8.5-jdk21-alpine AS build
 WORKDIR /app
-COPY mutant-detector .
+COPY . .
 RUN gradle bootJar --no-daemon -x test
 
 # Run stage
