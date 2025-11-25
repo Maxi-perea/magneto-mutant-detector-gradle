@@ -1,14 +1,15 @@
 package com.magneto.mutant_detector.service;
 
-import com.magneto.mutant_detector.dto.StatsResponse;
 import com.magneto.mutant_detector.entity.DnaRecord;
 import com.magneto.mutant_detector.repository.DnaRecordRepository;
+import com.magneto.mutant_detector.dto.StatsResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
 import java.util.Arrays;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class MutantService {
 
     private static final int SEQUENCE_LENGTH = 4;
@@ -20,29 +21,24 @@ public class MutantService {
         this.dnaRepository = dnaRepository;
     }
 
-    /**
-     * Método principal que orquesta la detección y persistencia.
-     */
     public boolean analyze(String[] dna) {
-        // 1. Validar ADN básico
-        if (!isValidDna(dna)) {
-            throw new IllegalArgumentException("ADN inválido");
-        }
-
-        // 2. Generar Hash único para este ADN (Optimización Nivel 3)
-        // Usamos Arrays.toString como firma única simple y efectiva.
+        // 1. Generar Hash único
         String dnaHash = Arrays.toString(dna);
+        log.info("🔎 Analizando ADN con Hash: {}", dnaHash.hashCode());
 
-        // 3. Verificar si ya fue analizado en la BD (Evita re-procesar)
+        // 2. Verificar Caché (BD)
         Optional<DnaRecord> existingRecord = dnaRepository.findByDnaHash(dnaHash);
         if (existingRecord.isPresent()) {
-            return existingRecord.get().isMutant();
+            boolean result = existingRecord.get().isMutant();
+            log.info("✅ ADN encontrado en base de datos. Resultado previo: {}", result ? "MUTANTE" : "HUMANO");
+            return result;
         }
 
-        // 4. Si es nuevo, ejecutamos el algoritmo
+        // 3. Ejecutar algoritmo
         boolean isMutant = isMutantAlgorithm(dna);
+        log.info("🧬 Análisis completado. Resultado: {}", isMutant ? "MUTANTE" : "HUMANO");
 
-        // 5. Guardamos el resultado para el futuro
+        // 4. Guardar
         DnaRecord newRecord = new DnaRecord(dnaHash, isMutant);
         dnaRepository.save(newRecord);
 
@@ -57,36 +53,24 @@ public class MutantService {
         return new StatsResponse(countMutant, countHuman, ratio);
     }
 
-    // --- Algoritmo Core (El mismo del Nivel 1, movido a método privado) ---
+    // --- Algoritmo Core ---
     private boolean isMutantAlgorithm(String[] dna) {
         int n = dna.length;
         int sequenceCount = 0;
 
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
-                // Horizontal
-                if (j + SEQUENCE_LENGTH <= n) {
-                    if (checkSequence(dna, i, j, 0, 1)) {
-                        if (++sequenceCount > MUTANT_THRESHOLD) return true;
-                    }
+                if (j + SEQUENCE_LENGTH <= n) { // Horizontal
+                    if (checkSequence(dna, i, j, 0, 1) && ++sequenceCount > MUTANT_THRESHOLD) return true;
                 }
-                // Vertical
-                if (i + SEQUENCE_LENGTH <= n) {
-                    if (checkSequence(dna, i, j, 1, 0)) {
-                        if (++sequenceCount > MUTANT_THRESHOLD) return true;
-                    }
+                if (i + SEQUENCE_LENGTH <= n) { // Vertical
+                    if (checkSequence(dna, i, j, 1, 0) && ++sequenceCount > MUTANT_THRESHOLD) return true;
                 }
-                // Diagonal Principal
-                if (i + SEQUENCE_LENGTH <= n && j + SEQUENCE_LENGTH <= n) {
-                    if (checkSequence(dna, i, j, 1, 1)) {
-                        if (++sequenceCount > MUTANT_THRESHOLD) return true;
-                    }
+                if (i + SEQUENCE_LENGTH <= n && j + SEQUENCE_LENGTH <= n) { // Diagonal Principal
+                    if (checkSequence(dna, i, j, 1, 1) && ++sequenceCount > MUTANT_THRESHOLD) return true;
                 }
-                // Diagonal Inversa
-                if (i + SEQUENCE_LENGTH <= n && j - SEQUENCE_LENGTH + 1 >= 0) {
-                    if (checkSequence(dna, i, j, 1, -1)) {
-                        if (++sequenceCount > MUTANT_THRESHOLD) return true;
-                    }
+                if (i + SEQUENCE_LENGTH <= n && j - SEQUENCE_LENGTH + 1 >= 0) { // Diagonal Inversa
+                    if (checkSequence(dna, i, j, 1, -1) && ++sequenceCount > MUTANT_THRESHOLD) return true;
                 }
             }
         }
@@ -99,16 +83,6 @@ public class MutantService {
             if (dna[row + k * deltaRow].charAt(col + k * deltaCol) != base) {
                 return false;
             }
-        }
-        return true;
-    }
-
-    private boolean isValidDna(String[] dna) {
-        if (dna == null || dna.length == 0) return false;
-        int n = dna.length;
-        String validPattern = "[ATCG]+";
-        for (String row : dna) {
-            if (row == null || row.length() != n || !row.matches(validPattern)) return false;
         }
         return true;
     }

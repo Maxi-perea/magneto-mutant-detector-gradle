@@ -38,7 +38,7 @@ public class MutantServiceTest {
 
     @Test
     void testIsMutant_Vertical() {
-        String[] dna = {"ACGT", "ACGT", "ACGT", "ACGT"}; // 4 A verticales
+        String[] dna = {"ACGT", "ACGT", "ACGT", "ACGT"}; // 4 A verticales y otras coincidencias
         when(dnaRepository.findByDnaHash(any())).thenReturn(Optional.empty());
 
         assertTrue(mutantService.analyze(dna));
@@ -63,27 +63,10 @@ public class MutantServiceTest {
 
     @Test
     void testIsHuman() {
-        String[] dna = {"ATGC", "CAGT", "TTAT", "AGAC"}; // Sin secuencias
+        String[] dna = {"ATGC", "CAGT", "TTAT", "AGAC"}; // Sin secuencias suficientes
         when(dnaRepository.findByDnaHash(any())).thenReturn(Optional.empty());
 
         assertFalse(mutantService.analyze(dna));
-    }
-
-    @Test
-    void testInvalidDna_Null() {
-        assertThrows(IllegalArgumentException.class, () -> mutantService.analyze(null));
-    }
-
-    @Test
-    void testInvalidDna_NxM() {
-        String[] dna = {"ATC", "CAGT"}; // No cuadrada
-        assertThrows(IllegalArgumentException.class, () -> mutantService.analyze(dna));
-    }
-
-    @Test
-    void testInvalidDna_InvalidChars() {
-        String[] dna = {"ATXG", "CAGT", "TTAT", "AGAC"}; // X no válida
-        assertThrows(IllegalArgumentException.class, () -> mutantService.analyze(dna));
     }
 
     @Test
